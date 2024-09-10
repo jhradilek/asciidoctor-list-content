@@ -93,7 +93,7 @@ abort "Invalid number of arguments" if args.length < 1
 # Process each supplied file:
 args.each do |file|
   # Verify that the supplied file exists and is readable:
-  abort "File does not exist: #{file}" if not File.exists?(file)
+  abort "File does not exist: #{file}" if not File.exist?(file)
   abort "Not a file: #{file}" if not File.file?(file)
   abort "File not readable: #{file}" if not File.readable?(file)
 
