@@ -116,7 +116,7 @@ begin
     path = Pathname.new(File.realpath(file)).relative_path_from(relpath)
 
     # Parse the supplied file:
-    doc = Asciidoctor.load_file(file, doctype: :book, safe: :safe, catalog_assets: true)
+    doc = Asciidoctor.load_file(file, doctype: :book, safe: :unsafe, catalog_assets: true)
 
     # Print the list of all included files:
     doc.catalog[:includes].each do |item, _|
