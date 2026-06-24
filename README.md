@@ -48,6 +48,6 @@ gem install asciidoctor-list-content
 
 ## Copyright
 
-Copyright © 2022, 2025 Jaromir Hradilek
+Copyright © 2022, 2026 Jaromir Hradilek
 
 This program is free software, released under the terms of the MIT license. It is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.

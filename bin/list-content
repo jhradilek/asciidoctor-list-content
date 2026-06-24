@@ -29,7 +29,7 @@ require 'pathname'
 require 'optparse'
 
 # Set the script name and version:
-VERSION = '0.1.1'
+VERSION = '0.1.2'
 NAME    = File.basename($0)
 
 # Set the current working directory as the defualt starting point for

@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
   # General information:
   s.name        = 'asciidoctor-list-content'
-  s.version     = '0.1.1'
+  s.version     = '0.1.2'
   s.summary     = 'List files included in an AsciiDoc document'
   s.description = 'A simple script that parses a supplied AsciiDoc file and prints all files included in it to standard output.'
   s.authors     = ['Jaromir Hradilek']

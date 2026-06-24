@@ -1,5 +1,5 @@
 # A custom makefile for the list-content utility
-# Copyright (C) 2022 Jaromir Hradilek
+# Copyright (C) 2022, 2026 Jaromir Hradilek
 
 # MIT License
 #
@@ -24,7 +24,7 @@
 
 # General information about the utility:
 NAME    = list-content
-VERSION = 0.1.1
+VERSION = 0.1.2
 
 # General settings:
 SHELL   = /bin/sh
