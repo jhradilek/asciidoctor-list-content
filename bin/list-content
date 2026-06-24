@@ -139,7 +139,7 @@ args.each do |file|
 
     # Print the conent type from the related attribute if requested:
     if with_attribute
-      type = File.read(include)[/^:_content-type: (.*)$/,1]
+      type = File.read(include)[/^:_(?:mod-docs-content|content|module)-type: (.*)$/,1]
       type = 'NONE' if not type
       print "#{type}#{delimiter}"
     end
