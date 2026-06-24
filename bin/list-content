@@ -77,8 +77,8 @@ op = OptionParser.new do |opts|
   end
 
   opts.on('-r', '--relative-to=DIR', 'print file paths relative to DIR') do |value|
-    abort "Directory does not exist: #{dir}" if not File.exist?(value)
-    abort "Not a directory: #{dir}" if not File.directory?(value)
+    abort "#{NAME}: Directory does not exist: #{dir}" if not File.exist?(value)
+    abort "#{NAME}: Not a directory: #{dir}" if not File.directory?(value)
     relpath = Pathname.new(File.expand_path(value))
   end
 
@@ -94,73 +94,82 @@ op = OptionParser.new do |opts|
 end
 
 # Parse command-line options and return the remaining arguments:
-args = op.parse!
+begin
+  args = op.parse!
+rescue OptionParser::InvalidArgument, OptionParser::InvalidOption,
+       OptionParser::AmbiguousOption, OptionParser::MissingArgument => error
+  abort "#{NAME}: #{error.message}"
+end
 
 # Verify the number of supplied command-line arguments:
-abort "Invalid number of arguments" if args.length < 1
+abort "#{NAME}: Invalid number of arguments" if args.length < 1
 
-# Process each supplied file:
-args.each do |file|
-  # Verify that the supplied file exists and is readable:
-  abort "File does not exist: #{file}" if not File.exist?(file)
-  abort "Not a file: #{file}" if not File.file?(file)
-  abort "File not readable: #{file}" if not File.readable?(file)
+begin
+  # Process each supplied file:
+  args.each do |file|
+    # Verify that the supplied file exists and is readable:
+    abort "#{NAME}: File does not exist: #{file}" if not File.exist?(file)
+    abort "#{NAME}: Not a file: #{file}" if not File.file?(file)
+    abort "#{NAME}: File not readable: #{file}" if not File.readable?(file)
 
-  # Get the adjusted relative path to the supplied file:
-  path = Pathname.new(File.realpath(file)).relative_path_from(relpath)
+    # Get the adjusted relative path to the supplied file:
+    path = Pathname.new(File.realpath(file)).relative_path_from(relpath)
 
-  # Parse the supplied file:
-  doc = Asciidoctor.load_file(file, doctype: :book, safe: :safe, catalog_assets: true)
+    # Parse the supplied file:
+    doc = Asciidoctor.load_file(file, doctype: :book, safe: :safe, catalog_assets: true)
 
-  # Print the list of all included files:
-  doc.catalog[:includes].each do |item, _|
-    # Start composing the resulting output:
-    result = ''
+    # Print the list of all included files:
+    doc.catalog[:includes].each do |item, _|
+      # Start composing the resulting output:
+      result = ''
 
-    # Get the adjusted relative path to the included file:
-    include = Pathname.new(File.realpath(File.join(File.dirname(file), "#{item}.adoc"))).relative_path_from(relpath)
+      # Get the adjusted relative path to the included file:
+      include = Pathname.new(File.realpath(File.join(File.dirname(file), "#{item}.adoc"))).relative_path_from(relpath)
 
-    # Print the name of the parent file if requested:
-    result << "#{path}#{delimiter}" if with_filename
+      # Print the name of the parent file if requested:
+      result << "#{path}#{delimiter}" if with_filename
 
-    # Print the content type from the file prefix if requested:
-    if with_prefix
-      case include.basename.to_s
-        when /^con[_-]/
-          type = 'CONCEPT'
-        when /^proc[_-]/
-          type = 'PROCEDURE'
-        when /^ref[_-]/
-          type = 'REFERENCE'
-        when /^assembly[_-]/
-          type = 'ASSEMBLY'
-        when /^snip[_-]/
-          type = 'SNIPPET'
-        else
-          type = 'NONE'
+      # Print the content type from the file prefix if requested:
+      if with_prefix
+        case include.basename.to_s
+          when /^con[_-]/
+            type = 'CONCEPT'
+          when /^proc[_-]/
+            type = 'PROCEDURE'
+          when /^ref[_-]/
+            type = 'REFERENCE'
+          when /^assembly[_-]/
+            type = 'ASSEMBLY'
+          when /^snip[_-]/
+            type = 'SNIPPET'
+          else
+            type = 'NONE'
+        end
+        result << "#{type}#{delimiter}"
       end
-      result << "#{type}#{delimiter}"
+
+      # Print the conent type from the related attribute if requested:
+      if with_attribute
+        type = File.read(include)[/^:_(?:mod-docs-content|content|module)-type: (.*)$/,1]
+        type = 'NONE' if not type
+        result << "#{type}#{delimiter}"
+      end
+
+      # Print the name of the included file:
+      puts result << include.to_s
     end
 
-    # Print the conent type from the related attribute if requested:
-    if with_attribute
-      type = File.read(include)[/^:_(?:mod-docs-content|content|module)-type: (.*)$/,1]
-      type = 'NONE' if not type
-      result << "#{type}#{delimiter}"
+    # Skip listing images if not requested:
+    next unless images
+
+    # Print the list of all included images:
+    doc.catalog[:images].each do |image|
+      print "#{path}#{delimiter}" if with_filename
+      print "IMAGE#{delimiter}" if with_prefix
+      print "IMAGE#{delimiter}" if with_attribute
+      puts Pathname.new(File.realpath(File.join(File.dirname(file), image.imagesdir || '', image.target))).relative_path_from(relpath)
     end
-
-    # Print the name of the included file:
-    puts result << include.to_s
   end
-
-  # Skip listing images if not requested:
-  next unless images
-
-  # Print the list of all included images:
-  doc.catalog[:images].each do |image|
-    print "#{path}#{delimiter}" if with_filename
-    print "IMAGE#{delimiter}" if with_prefix
-    print "IMAGE#{delimiter}" if with_attribute
-    puts Pathname.new(File.realpath(File.join(File.dirname(file), image.imagesdir || '', image.target))).relative_path_from(relpath)
-  end
+rescue Interrupt
+  exit 130
 end
