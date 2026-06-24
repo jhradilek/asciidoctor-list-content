@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # list-content.rb - list content included in supplied AsciiDoc files
-# Copyright (C) 2022 Jaromir Hradilek
+# Copyright (C) 2022, 2026 Jaromir Hradilek
 
 # MIT License
 #
@@ -114,38 +114,43 @@ args.each do |file|
 
   # Print the list of all included files:
   doc.catalog[:includes].each do |item, _|
+    # Start composing the resulting output:
+    result = ''
+
     # Get the adjusted relative path to the included file:
     include = Pathname.new(File.realpath(File.join(File.dirname(file), "#{item}.adoc"))).relative_path_from(relpath)
 
     # Print the name of the parent file if requested:
-    print "#{path}#{delimiter}" if with_filename
+    result << "#{path}#{delimiter}" if with_filename
 
     # Print the content type from the file prefix if requested:
     if with_prefix
       case include.basename.to_s
-        when /^con_/
+        when /^con[_-]/
           type = 'CONCEPT'
-        when /^proc_/
+        when /^proc[_-]/
           type = 'PROCEDURE'
-        when /^ref_/
+        when /^ref[_-]/
           type = 'REFERENCE'
-        when /^assembly_/
+        when /^assembly[_-]/
           type = 'ASSEMBLY'
+        when /^snip[_-]/
+          type = 'SNIPPET'
         else
           type = 'NONE'
       end
-      print "#{type}#{delimiter}"
+      result << "#{type}#{delimiter}"
     end
 
     # Print the conent type from the related attribute if requested:
     if with_attribute
       type = File.read(include)[/^:_(?:mod-docs-content|content|module)-type: (.*)$/,1]
       type = 'NONE' if not type
-      print "#{type}#{delimiter}"
+      result << "#{type}#{delimiter}"
     end
 
     # Print the name of the included file:
-    puts include
+    puts result << include.to_s
   end
 
   # Skip listing images if not requested:
